@@ -1,61 +1,16 @@
-"use client";
-import { authClient } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { auth } from "@/lib/auth";
+import { HomeView } from "@/modules/home/ui/views/home-view";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default async function Home() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  const { data: session } = authClient.useSession();
-
-  const onSubmit = () => {
-    authClient.signUp.email(
-      {
-        email,
-        password,
-        name,
-      },
-      {
-        onSuccess: (ctx) => {
-          window.alert("user created");
-        },
-        onError: (ctx) => {
-          window.alert(ctx.error.message);
-        },
-      }
-    );
-  };
-
-  if (session) {
-    return (
-      <div>
-        <p>{session.user.name} is logged in</p>
-        <Button onClick={() => authClient.signOut()}>Sign out</Button>
-      </div>
-    );
+  if (!session) {
+    redirect("/sign-in");
   }
-  return (
-    <div>
-      <Input
-        placeholder="name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <Input
-        placeholder="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <Input
-        placeholder="passsword"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
-      <Button onClick={onSubmit}>create user</Button>
-    </div>
-  );
+
+  return <HomeView />;
 }
