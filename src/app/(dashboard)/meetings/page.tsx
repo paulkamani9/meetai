@@ -1,24 +1,16 @@
 import { ErrorState } from "@/components/error-state";
 import { LoadingState } from "@/components/loading-state";
 import { auth } from "@/lib/auth";
-import { loadSearchParams } from "@/modules/agents/params";
-import { AgentListHeader } from "@/modules/agents/ui/components/agents-list-header";
-import { AgentsView } from "@/modules/agents/ui/views/agents-view";
+import { MeetingListHeader } from "@/modules/meetings/ui/components/meeting-list-header";
+import { MeetingsView } from "@/modules/meetings/ui/views/meetings-view";
 import { getQueryClient, trpc } from "@/trpc/server";
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { SearchParams } from "nuqs";
 import { Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
-interface AgentsPageProps {
-  searchParams: Promise<SearchParams>;
-}
-
-const Agents = async ({ searchParams }: AgentsPageProps) => {
-  const filtersParams = await loadSearchParams(searchParams);
-
+const MeetingsPage = async () => {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -26,35 +18,30 @@ const Agents = async ({ searchParams }: AgentsPageProps) => {
   if (!session) {
     redirect("/sign-in");
   }
-
   const queryClient = getQueryClient();
-  void queryClient.prefetchQuery(
-    trpc.agents.getMany.queryOptions({
-      ...filtersParams,
-    })
-  );
+  void queryClient.prefetchQuery(trpc.meetings.getMany.queryOptions({}));
 
   return (
     <>
-      <AgentListHeader />
+      <MeetingListHeader />
       <HydrationBoundary state={dehydrate(queryClient)}>
         <Suspense
           fallback={
             <LoadingState
-              title="Loading agents"
-              description="This may take a few seconds"
+              title="Loading Meetings"
+              description="Your meetings are loading.."
             />
           }
         >
           <ErrorBoundary
             fallback={
               <ErrorState
-                title="Error loading agents"
+                title="Failed to load meetings"
                 description="Please try again later"
               />
             }
           >
-            <AgentsView />
+            <MeetingsView />
           </ErrorBoundary>
         </Suspense>
       </HydrationBoundary>
@@ -62,4 +49,4 @@ const Agents = async ({ searchParams }: AgentsPageProps) => {
   );
 };
 
-export default Agents;
+export default MeetingsPage;
