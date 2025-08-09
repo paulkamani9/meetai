@@ -51,10 +51,7 @@ export const useConfirm = ({
           >
             Cancel
           </Button>
-          <Button
-            onClick={handleConfirm}
-            className="w-full lg:w-auto"
-          >
+          <Button onClick={handleConfirm} className="w-full lg:w-auto">
             Confirm
           </Button>
         </div>
